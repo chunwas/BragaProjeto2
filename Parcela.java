@@ -1,12 +1,10 @@
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Parcela {
     private String nome;
     private int tempoCrescimento, clima;
-    private List<String> datasRegas;
-    private List<String> datasAdubos;
-    private List<String> plantas;
     private boolean precisaTratamentoEspecial;
 
 
@@ -16,54 +14,64 @@ public class Parcela {
         else if (this.clima == 3) { return "Ambiente"; }
         return "Clima não registrado.";
     }
-
-
-    public List<String> getDatasRegas() { return datasRegas; }
-
-    public List<String> getDatasAdubos() { return datasAdubos; }
     
     public Parcela(String nome, int tempoCrescimento, int clima) {
         this.nome = nome;
         this.clima = clima;
         this.tempoCrescimento = tempoCrescimento;
-        this.datasRegas = new ArrayList<String>();
-        this.datasAdubos = new ArrayList<String>();
-        this.plantas = new ArrayList<String>();
         this.precisaTratamentoEspecial = false;
     }
 
-    public void registrarPlanta(String nome) {
-        this.plantas.add(nome);
+    public void registrarPlanta(Banco banco, String planta) {
+        Map<String, String> valores = new HashMap<>();
+        valores.put("parcela", this.nome); 
+        valores.put("planta", planta);
+        banco.insert("plantas", valores); 
+        System.out.println("Planta " + planta + " registrada na parcela " + nome);
     }
 
-    public void getPlanta() {
-        int val = 1;
-        for(String planta: this.plantas){
-            System.out.printf("%d - %s\n", val, planta);
-            val++;
-      }
-    }
-
-    public void getRega() {
-        if(datasRegas.isEmpty()) System.out.println("Ainda não foi regado.");
-        else for(String data: this.datasRegas){ System.out.println(data); }
-
-    }
-
-    public void getAdubo() {
-        if(datasAdubos.isEmpty()) System.out.println("Ainda não foi adubado.");
-        else for(String data: this.datasAdubos){ System.out.println(data); }
-
-    }
-
-    public void registrarRegar(String data) {
-        datasRegas.add(data);
+    public void registrarRegar(Banco banco, String data) {
+        Map<String, String> valores = new HashMap<>();
+        valores.put("parcela", this.nome);
+        valores.put("data", data);
+        banco.insert("regas", valores);
         System.out.println("Parcela " + nome + " foi regada em " + data);
     }
 
-    public void registrarAdubo(String data) {
-        datasAdubos.add(data);
+    public void registrarAdubo(Banco banco, String data) {
+        Map<String, String> valores = new HashMap<>();
+        valores.put("parcela", this.nome);
+        valores.put("data", data);
+        banco.insert("adubos", valores);
         System.out.println("Parcela " + nome + " recebeu adubo em " + data);
+    }
+
+    public void getAdubo(Banco banco) {
+        List<Map<String, String>> registros = banco.select("adubos");
+        boolean encontrado = false;
+        for (Map<String, String> registro : registros) {
+            if (registro.get("parcela").equals(this.nome)) {
+                System.out.println("Adubo registrado em: " + registro.get("data"));
+                encontrado = true;
+            }
+        }
+        if (!encontrado) {
+            System.out.println("Nenhum adubo registrado para a parcela " + nome);
+        }
+    }
+
+    public void getRega(Banco banco) {
+        List<Map<String, String>> registros = banco.select("regas");
+        boolean encontrado = false;
+        for (Map<String, String> registro : registros) {
+            if (registro.get("parcela").equals(this.nome)) {
+                System.out.println("Rega registrada em: " + registro.get("data"));
+                encontrado = true;
+            }
+        }
+        if (!encontrado) {
+            System.out.println("Nenhuma rega registrada para a parcela " + nome);
+        }
     }
 
     public void marcarTratamentoEspecial() {
