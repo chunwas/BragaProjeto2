@@ -1,11 +1,16 @@
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        Banco banco = new Banco(); 
         Horta horta = new Horta();
         Scanner scanner = new Scanner(System.in);
         int opcao, tempoCrescimento, plantas, climaIdeal;
         String nomeParcela, dataAdubo, dataRega, planta;
+
+        horta.inicializarTabelas();
         
         do {
             System.out.println("\nMenu - Gerenciamento de Horta Comunitária:");
@@ -26,7 +31,7 @@ public class Main {
                     nomeParcela = scanner.nextLine();
                     System.out.print("Tempo de crescimento (em dias): ");
                     tempoCrescimento = scanner.nextInt();
-                    scanner.nextLine();  // Consumir nova linha
+                    scanner.nextLine();
                     System.out.print("Qual o clima ideal da parcela ?\n1 - Sol.\n2 - Chuva.\n3 - Ambiente\nOpção: ");
                     climaIdeal = scanner.nextInt();
                     scanner.nextLine();
@@ -34,12 +39,12 @@ public class Main {
                     plantas = scanner.nextInt();
                     scanner.nextLine();
                     Parcela parcela = new Parcela(nomeParcela, tempoCrescimento, climaIdeal);
+                    horta.adicionarParcela(parcela);
                     for(int i = 0; i < plantas; i++){
                         System.out.printf("Nome da planta %d: ", i + 1);
                         planta = scanner.nextLine();
-                        parcela.registrarPlanta(planta);
+                        parcela.registrarPlanta(horta, planta);
                     }
-                    horta.adicionarParcela(parcela);
                     break;
 
                 case 2:
@@ -63,7 +68,13 @@ public class Main {
                     nomeParcela = scanner.nextLine();
                     for (Parcela p : horta.getParcelas()) {
                         if (p.getNome().equals(nomeParcela)) {
-                            p.marcarTratamentoEspecial();
+                            Map<String, String> valores = new HashMap<>();
+                            valores.put("nome", p.getNome());
+                            valores.put("tempoCrescimento", String.valueOf(p.getTempoCrescimento()));
+                            valores.put("clima", p.getClima());
+                            valores.put("tratamentoEspecial", "true");
+                            banco.update("parcelas", valores);
+                            
                         } else {
                             System.out.println("Parcela não encontrada.");
                         }
@@ -71,7 +82,7 @@ public class Main {
                     break;
 
                 case 5:
-                    horta.sugerirAcoes();
+                    horta.sugerirAcoes(banco); 
                     break;
 
                 case 6:
