@@ -7,8 +7,8 @@ public class Controle{
   }
   public executar(){
     int resposta = null;
-
-
+  
+  
     while(resposta != 0){
       resposta = console.menu();
       switch(resposta){
@@ -35,6 +35,10 @@ public class Controle{
           break;
         default:
           break;
+      }    
+    }
   
-  
+  }
+
+
 }
