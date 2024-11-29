@@ -12,6 +12,7 @@ public class Banco {
         createTable("adubo");
         createTable("regas");
         createTable("parcelas");
+        createTable("tratamentoEspecial");
     }
 
     public void createTable(String nomeTabela) {
