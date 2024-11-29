@@ -1,25 +1,53 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class  Horta {
+public class Horta extends Banco {
     private List<Parcela> parcelas;
     Clima clima = new Clima();
     String climaAtual;
     SugestaoRega sugestaoRega;
 
+    
+
     public Horta() {
         this.parcelas = new ArrayList<Parcela>();
     }
 
+    @Override
+    protected void inicializarTabelas() {
+        super.inicializarTabelas();
+        createTable("plantas");
+    }
+
+    public void registrarPlanta(Banco banco, String planta, String nome) {
+        Map<String, String> valores = new HashMap<>();
+        valores.put("parcela", nome);
+        valores.put("planta", planta);
+        banco.insert("plantas", valores);
+        System.out.println("Planta " + planta + " registrada na parcela " + nome);
+    }
+
+    
+
     public void adicionarParcela(Parcela parcela) {
         parcelas.add(parcela);
         System.out.println("Parcela " + parcela.getNome() + " adicionada à horta.");
+
+        Map<String, String> valores = new HashMap<>();
+        valores.put("nome", parcela.getNome());
+        valores.put("tempoCrescimento", String.valueOf(parcela.getTempoCrescimento()));
+        valores.put("clima", parcela.getClima());
+        valores.put("tratamentoEspecial", parcela.isPrecisaTratamentoEspecial() ? "Sim" : "Não");
+        insert("parcelas", valores);
     }
 
     public void regarParcela(String nomeParcela, String data) {
         for (Parcela parcela : parcelas) {
             if (parcela.getNome().equals(nomeParcela)) {
-                parcela.registrarRegar(data);
+                parcela.registrarRegar(this, data);
                 return;
             }
         }
@@ -29,35 +57,36 @@ public class  Horta {
     public void adubarParcela(String nomeParcela, String data) {
         for (Parcela parcela : parcelas) {
             if (parcela.getNome().equals(nomeParcela)) {
-                parcela.registrarAdubo(data);
+                parcela.registrarAdubo(this, data);
                 return;
             }
         }
         System.out.println("Parcela não encontrada.");
     }
 
-    public void sugerirAcoes() {
+    public void sugerirAcoes(Banco banco) {
         climaAtual = clima.randomizarClima();
         sugestaoRega = new SugestaoRega(climaAtual);
         System.out.println("Clima atual: " + climaAtual);
+
         for (Parcela parcela : parcelas) {
-            System.out.println(sugestaoRega.gerarSugestao(parcela.getDatasRegas(), parcela.getDatasAdubos()));
+            parcela.getRega(this);
+            parcela.getAdubo(this);
+            String sugestao = sugestaoRega.gerarSugestao(banco, parcela.getNome());
+            System.out.println("Sugestão para a parcela '" + parcela.getNome() + "': " + sugestao);
         }
     }
 
     public void gerarRelatorio() {
         System.out.println("Relatório da Horta:");
-        for (Parcela parcela : parcelas) {
-            System.out.println("Parcela: " + parcela.getNome());
-            System.out.println("Tempo de crescimento esperado: " + parcela.getTempoCrescimento() + " dias");
-            System.out.println("Precisa de tratamento especial: " + (parcela.isPrecisaTratamentoEspecial() ? "Sim" : "Não"));
-            System.out.printf("Clima ideal: %s\n", parcela.getClima());
-            System.out.println("Plantas: ");
-            parcela.getPlanta();
-            System.out.println("Datas de adubo: ");
-            parcela.getAdubo();
-            System.out.println("Plantas de rega: ");
-            parcela.getRega();
+
+        List<Map<String, String>> registrosParcelas = select("parcelas");
+        
+        for (Map<String, String> registro : registrosParcelas) {
+            System.out.println("Parcela: " + registro.get("nome"));
+            System.out.println("Tempo de crescimento esperado: " + registro.get("tempoCrescimento") + " dias");
+            System.out.println("Precisa de tratamento especial: " + registro.get("tratamentoEspecial"));
+            System.out.printf("Clima ideal: %s\n", registro.get("clima"));
             System.out.println("--------------------------");
         }
     }
